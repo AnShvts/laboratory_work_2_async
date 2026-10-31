@@ -6,7 +6,7 @@
   3. печатает "done n"
 
 и функцию main(), которая вызывает work для n от 1 до 10.
-Запустите с замером времени. Сколько секунд заняла программа?
+Запустите с замером времени. Сколько секунд заняла программа? 10.08s
 """
 
 import time
@@ -14,12 +14,15 @@ import time
 from timer import print_time
 
 
-def work(n: int) -> None:
-    ...
+def work(n):
+    print(f"start {n}")
+    time.sleep(1)
+    print(f"done {n}")
 
 
-def main() -> None:
-    ...
+def main():
+    for n in range(1, 11):
+        work(n)
 
 
 if __name__ == "__main__":
