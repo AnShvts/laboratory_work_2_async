@@ -10,6 +10,24 @@ heavy_compute. Она синхронная и работает 1-3 секунд�
   ждут через asyncio.sleep. Запустите.
   Что произошло с остальными клиентами? Почему, ведь всё написано на async?
 
+[  0.0s] alice: запрос принят
+[  0.0s] bob: запрос принят
+[  7.2s] bob: ответ отправлен
+[  7.2s] carol: запрос принят
+[  7.2s] dave: запрос принят
+[  7.2s] eve: запрос принят
+[  7.2s] alice: ответ отправлен
+[  7.7s] dave: ответ отправлен
+[  7.7s] carol: ответ отправлен
+[  7.7s] eve: ответ отправлен
+Time elapsed: 7.69s
+
+Хотя программа написана с использованием async, 
+синхронная функция heavy_compute() блокирует event loop. 
+Она не уступает управление, 
+поэтому остальные корутины не могут выполняться до завершения вычислений Bob. 
+async сам по себе не делает синхронный код неблокирующим.
+
 Задание 4б:
   Исправьте так, чтобы остальные клиенты не ждали bob. Два инструмента:
     await asyncio.to_thread(heavy_compute)
@@ -48,7 +66,7 @@ def heavy_compute() -> int:
 async def handle_request(client: str, duration: float) -> None:
     log(f"{client}: запрос принят")
     if client == "bob":
-        heavy_compute()
+        await asyncio.to_thread(heavy_compute)
     else:
         await asyncio.sleep(duration)
     log(f"{client}: ответ отправлен")
