@@ -13,6 +13,7 @@ Time elapsed: 10.11s.
 Задание 2б:
   Перепишите main так, чтобы все 10 задач ждали одновременно.
   Подсказка: asyncio.gather. Что изменилось в порядке вывода?
+  через asyncio.gather:
   start 1
   start 2
   start 3
@@ -34,6 +35,29 @@ Time elapsed: 10.11s.
   done 2
   done 4
   Time elapsed: 1.03s
+
+  через asyncio.create_task:
+  start 1
+  start 2
+  start 3
+  start 4
+  start 5
+  start 6
+  start 7
+  start 8
+  start 9
+  start 10
+  done 1
+  done 3
+  done 2
+  done 7
+  done 10
+  done 6
+  done 8
+  done 9
+  done 5
+  done 4
+  Time elapsed: 1.06s
 
 """
 
