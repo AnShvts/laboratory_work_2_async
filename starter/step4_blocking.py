@@ -37,12 +37,39 @@ async сам по себе не делает синхронный код неб�
   Попробуйте оба. Порядок строк в выводе должен стать как в шаге 3б,
   время bob зависит от машины.
 
+await asyncio.to_thread(heavy_compute):
+[  0.0s] alice: запрос принят
+[  0.0s] bob: запрос принят
+[  0.0s] carol: запрос принят
+[  0.0s] dave: запрос принят
+[  0.0s] eve: запрос принят
+[  0.5s] alice: ответ отправлен
+[  0.5s] carol: ответ отправлен
+[  0.5s] dave: ответ отправлен
+[  0.6s] eve: ответ отправлен
+[  6.4s] bob: ответ отправлен
+Time elapsed: 6.38s
+
+await loop.run_in_executor(pool, heavy_compute):
+[  0.0s] alice: запрос принят
+[  0.0s] bob: запрос принят
+[  0.0s] carol: запрос принят
+[  0.0s] dave: запрос принят
+[  0.0s] eve: запрос принят
+[  0.5s] alice: ответ отправлен
+[  0.5s] carol: ответ отправлен
+[  0.5s] dave: ответ отправлен
+[  0.6s] eve: ответ отправлен
+[  4.9s] bob: ответ отправлен
+Time elapsed: 4.88s
+
 Задание 4в (если осталось время):
   Сделайте тяжёлыми трёх клиентов: bob, dave и eve. Сравните общее время
   для to_thread и для пула процессов. Почему оно отличается? Вспомните GIL.
 """
 
 import asyncio
+from concurrent.futures import ProcessPoolExecutor
 
 from timer import log, print_time
 
@@ -63,18 +90,23 @@ def heavy_compute() -> int:
     return h
 
 
-async def handle_request(client: str, duration: float) -> None:
+async def handle_request(client: str, duration: float, pool) -> None:
     log(f"{client}: запрос принят")
     if client == "bob":
-        await asyncio.to_thread(heavy_compute)
+        loop = asyncio.get_running_loop()
+        await loop.run_in_executor(pool, heavy_compute)
     else:
         await asyncio.sleep(duration)
     log(f"{client}: ответ отправлен")
 
 
 async def main() -> None:
-    coroutines = [handle_request(client, duration) for client, duration in CLIENTS]
-    await asyncio.gather(*coroutines)
+    with ProcessPoolExecutor() as pool:
+        coroutines = [
+            handle_request(client, duration, pool)
+            for client, duration in CLIENTS
+        ]
+        await asyncio.gather(*coroutines)
 
 
 if __name__ == "__main__":
